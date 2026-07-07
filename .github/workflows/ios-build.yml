@@ -1,6 +1,5 @@
 name: iOS Build & Verify
 
-# Trigger: jalan tiap kali push atau pull request ke main/master
 on:
   push:
     branches: [main, master]
@@ -10,52 +9,59 @@ on:
 jobs:
   build:
     name: Compile Check iOS
-    runs-on: macos-15      # Mac cloud Apple Silicon (gratis buat public repo!)
+    runs-on: macos-15
 
     steps:
-      # ============================================
-      # Step 1: Ambil kode dari repo
-      # ============================================
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      # ============================================
-      # Step 2: Pilih Xcode versi terbaru
-      # ============================================
-      - name: Select Xcode
+      - name: Show Tool Versions
         run: |
-          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-          echo "=== Xcode Version ==="
+          echo "=== Xcode ==="
           xcodebuild -version
-          echo "=== Swift Version ==="
+          echo ""
+          echo "=== Swift ==="
           swift --version
 
-      # ============================================
-      # Step 3: Compile untuk iOS Simulator
-      # Ini akan ngecek SEMUA file Swift kamu
-      # ============================================
-      - name: Build for iOS
+      - name: Type-Check All Swift Files
         run: |
-          # Dapetin SDK path iOS simulator
+          set -o pipefail
+
           SDK_PATH=$(xcrun --sdk iphonesimulator --show-sdk-path)
 
-          echo "=== SDK Path: $SDK_PATH ==="
+          echo "=== SDK: $SDK_PATH ==="
           echo ""
-          echo "=== Starting Compilation ==="
+          echo "=== Files to check: ==="
 
-          # Build pake SPM untuk iOS simulator
-          # Ini bakal compile semua file .swift + cek error
-          swift build \
-            --sdk "$SDK_PATH" \
-            --triple arm64-apple-ios17.0-simulator \
+          # Kumpulin semua file .swift (kecuali di folder .build / tersembunyi)
+          SWIFT_FILES=$(find . -name "*.swift" \
+            -not -path "./.build/*" \
+            -not -path "./.swiftpm/*" \
+            | sort)
+
+          echo "$SWIFT_FILES"
+          echo ""
+
+          FILE_COUNT=$(echo "$SWIFT_FILES" | wc -l | tr -d ' ')
+          echo "=== Total: $FILE_COUNT .swift files ==="
+          echo ""
+
+          # TYPE-CHECK: compile semua file sekaligus, tanpa linking
+          # Ini ngecek SEMUA error: syntax, type mismatch, missing imports, etc.
+          echo "=== Starting type-check ==="
+          echo ""
+
+          swiftc \
+            -sdk "$SDK_PATH" \
+            -target arm64-apple-ios17.0-simulator \
+            -typecheck \
+            -Xfrontend -enforce-exclusivity=checked \
+            $SWIFT_FILES \
             2>&1 | tee build.log
 
           echo ""
-          echo "=== Build Finished ==="
+          echo "=== Type-check finished ==="
 
-      # ============================================
-      # Step 4: Parse hasil build
-      # ============================================
       - name: Check Result
         run: |
           echo ""
@@ -69,37 +75,35 @@ jobs:
 
           echo "🔴 Errors  : $ERROR_COUNT"
           echo "🟡 Warnings: $WARNING_COUNT"
+          echo ""
 
           if [ "$ERROR_COUNT" -gt 0 ]; then
-            echo ""
             echo "╔══════════════════════════════════════════╗"
             echo "║  ❌ BUILD FAILED - ADA ERROR BRO!       ║"
             echo "╚══════════════════════════════════════════╝"
             echo ""
-            echo "=== ERROR LIST ==="
-            grep "error:" build.log
+            echo "=== ERRORS ==="
+            grep "error:" build.log || true
             echo ""
-            echo "=== TIPS ==="
-            echo "- Cek line number di atas"
-            echo "- Buka file di VSCode, perbaiki, lalu push lagi"
+            echo "=== CARA PERBAIKI ==="
+            echo "1. Buka file di VSCode, cek baris yang error"
+            echo "2. Perbaiki, lalu:"
+            echo "   git add ."
+            echo "   git commit -m \"fix: perbaiki error compile\""
+            echo "   git push origin main"
             exit 1
           else
-            echo ""
             echo "╔══════════════════════════════════════════╗"
             echo "║  ✅ BUILD SUCCESS - AMAN BRO!           ║"
             echo "╚══════════════════════════════════════════╝"
             echo ""
-            echo "Semua file Swift compile tanpa error."
-            echo "Siap buat di-build jadi .app di Xcode!"
+            echo "Semua $FILE_COUNT file Swift bebas error."
+            echo "Kode siap di-build di Xcode!"
           fi
 
-      # ============================================
-      # Step 5: Upload log sebagai artifact
-      # (Bisa di-download dari GitHub Actions tab)
-      # ============================================
       - name: Upload Build Log
-        if: always()      # Upload meskipun build gagal
-        uses: actions/upload-artifact@v4
+        if: always()
+        uses: actions/upload-artifact@v5
         with:
           name: build-log
           path: build.log
