@@ -1,0 +1,19 @@
+# Xcode
+*.xcworkspace
+*.xcuserdata
+DerivedData/
+Build/
+*.xcodeproj/xcuserdata/
+
+# SPM / Swift
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+
+# Artifacts
+build.log
