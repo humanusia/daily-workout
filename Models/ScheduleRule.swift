@@ -7,7 +7,7 @@ final class ScheduleRule {
     var dayOfWeek: Int
     var customTargetValue: Double?
 
-    @Relationship(inverse: \WorkoutType.scheduleRules)
+    // SwiftData auto-infers inverse dari WorkoutType.scheduleRules
     var workoutType: WorkoutType?
 
     var dayName: String {

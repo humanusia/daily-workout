@@ -63,10 +63,12 @@ final class WorkoutType {
     var colorHex: String
     var isArchived: Bool
 
-    @Relationship(deleteRule: .cascade, inverse: \ScheduleRule.workoutType)
+    // Relationships — SwiftData auto-infers inverse from the other side.
+    // Tidak pakai @Relationship untuk menghindari circular macro expansion.
+    @Relationship(deleteRule: .cascade)
     var scheduleRules: [ScheduleRule]?
 
-    @Relationship(deleteRule: .cascade, inverse: \WorkoutLog.workoutType)
+    @Relationship(deleteRule: .cascade)
     var workoutLogs: [WorkoutLog]?
 
     var category: WorkoutCategory {

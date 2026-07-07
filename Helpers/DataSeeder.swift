@@ -30,7 +30,7 @@ enum DataSeeder {
             let workout = WorkoutType(
                 name: item.name,
                 category: item.category,
-                metric: item.metric,
+                metricType: item.metric,
                 defaultTargetValue: item.target,
                 colorHex: item.hex
             )

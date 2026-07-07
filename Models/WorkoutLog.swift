@@ -9,7 +9,7 @@ final class WorkoutLog {
     var isCompleted: Bool
     var notes: String?
 
-    @Relationship(inverse: \WorkoutType.workoutLogs)
+    // SwiftData auto-infers inverse dari WorkoutType.workoutLogs
     var workoutType: WorkoutType?
 
     var normalizedDate: Date {
