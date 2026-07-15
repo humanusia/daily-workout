@@ -128,12 +128,9 @@ struct SchedulePlannerView: View {
     }
 
     // MARK: - Schedule Rule Row
+    @ViewBuilder
     private func scheduleRuleRow(_ rule: ScheduleRule) -> some View {
-        guard let workoutType = rule.workoutType else {
-            return AnyView(EmptyView())
-        }
-
-        return AnyView(
+        if let workoutType = rule.workoutType {
             HStack(spacing: 12) {
                 Circle()
                     .fill(colorFromHex(workoutType.colorHex))
@@ -186,7 +183,7 @@ struct SchedulePlannerView: View {
             } message: {
                 Text("Set a custom target for this workout on \(dayName).\nDefault: \(workoutType.defaultTargetValue.formatted())")
             }
-        )
+        }
     }
 
     // MARK: - Add Workout Sheet

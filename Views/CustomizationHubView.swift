@@ -335,7 +335,7 @@ struct WorkoutFormView: View {
             .padding(.vertical, 4)
 
             ColorPicker("Custom Color", selection: Binding(
-                get: { Color(colorFromHex(selectedColorHex)) },
+                get: { colorFromHex(selectedColorHex) },
                 set: { selectedColorHex = hexFromColor($0) }
             ))
         }

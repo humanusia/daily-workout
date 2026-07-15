@@ -205,15 +205,12 @@ struct TodayView: View {
     }
 
     // MARK: - Workout Row
+    @ViewBuilder
     private func workoutRow(for rule: ScheduleRule) -> some View {
-        guard let workoutType = rule.workoutType else {
-            return AnyView(EmptyView())
-        }
+        if let workoutType = rule.workoutType {
+            let log = todaysLogs.first { $0.workoutType?.id == workoutType.id }
+            let isDone = log?.isCompleted ?? false
 
-        let log = todaysLogs.first { $0.workoutType?.id == workoutType.id }
-        let isDone = log?.isCompleted ?? false
-
-        return AnyView(
             HStack(spacing: 14) {
                 Button {
                     toggleCompletion(for: rule, existingLog: log)
@@ -256,15 +253,12 @@ struct TodayView: View {
                 }
             }
             .padding(.vertical, 4)
-        )
+        }
     }
 
+    @ViewBuilder
     private func unscheduledLogRow(_ log: WorkoutLog) -> some View {
-        guard let workoutType = log.workoutType else {
-            return AnyView(EmptyView())
-        }
-
-        return AnyView(
+        if let workoutType = log.workoutType {
             HStack(spacing: 14) {
                 Image(systemName: "star.circle.fill")
                     .font(.title2)
@@ -289,7 +283,7 @@ struct TodayView: View {
                 }
             }
             .padding(.vertical, 4)
-        )
+        }
     }
 
     // MARK: - Edit Log Sheet
